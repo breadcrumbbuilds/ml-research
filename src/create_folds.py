@@ -81,9 +81,6 @@ def bsq_to_scikit(ncol, nrow, nband, data):
     return img_np
 
 
-
-
-
 def retrieve_data(binary_path, force_rewrite=False):
     csv_path = binary_path.replace('bin', 'csv')
     write_to_disk = False
@@ -119,7 +116,6 @@ def convert_y_to_binary(target, y):
         y = np.logical_and(y, t).astype(int)
 
     return y
-
 
 
 def retrieve_labels(path, label):

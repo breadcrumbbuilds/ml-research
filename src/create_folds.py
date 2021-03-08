@@ -136,7 +136,7 @@ def retrieve_labels(path, label):
     return df
 
 
-def run(binary_filename, label, force_rewrite=False):
+def run(binary_filename, label, folds=5, force_rewrite=False):
     cwd = os.path.dirname(os.path.realpath(__file__))      #path to current file
     parent_dir = os.path.split(cwd)[0]
     print(cwd)
@@ -160,7 +160,7 @@ def run(binary_filename, label, force_rewrite=False):
 
     y = dataset.target.values
     print(y)
-    kf = model_selection.StratifiedKFold(n_splits=5)
+    kf = model_selection.StratifiedKFold(n_splits=folds)
 
     for f, (t_, v_) in enumerate(kf.split(X=dataset, y=y)):
         dataset.loc[v_, 'kfold'] = f
@@ -168,19 +168,20 @@ def run(binary_filename, label, force_rewrite=False):
 
     if write_to_disk:
         print('writing to disk')
-        csv_path = os.path.join(parent_dir, f'input/train_folds_{label}.csv')
+        csv_path = os.path.join(os.path.dirname(binary_path), f'input/train_folds_{label}.csv')
         dataset.to_csv(csv_path, index=False)
 
-
-
-
-# load(config.TRAINING_FILE, 'water')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--label", type=str)
     parser.add_argument("--force", type=bool)
+    parser.add_argument("--folds", type=int)
+
     args = parser.parse_args()
 
-    run(config.BINARY_FILE, args.label, force_rewrite=args.force)
+    run(config.BINARY_FILE,
+        args.label,
+        folds=args.folds,
+        force_rewrite=args.force)

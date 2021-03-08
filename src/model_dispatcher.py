@@ -6,7 +6,12 @@ models = {
 		criterion="gini"
 	),
  	"decision_tree_entropy": tree.DecisionTreeClassifier(
-		 criterion="entropy"
+      criterion="entropy",
+
 	),
-	"rf": ensemble.RandomForestClassifier(n_jobs=-1),
+	"rf": ensemble.RandomForestClassifier(),
+	"rf_shallow": ensemble.RandomForestClassifier(
+     max_depth=3,
+     n_jobs=-1
+     ),
 }

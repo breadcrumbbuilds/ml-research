@@ -6,6 +6,7 @@ import joblib
 import numpy as np
 import pandas as pd
 from sklearn import metrics
+from sklearn.model_selection import GridSearchCV
 
 import config
 import create_folds
@@ -24,14 +25,21 @@ def run(fold, model):
     x_valid = df_valid.drop("target", axis=1).values
     y_valid = df_valid.target.values
 
-    clf = model_dispatcher.models[model]
+    clf = GridSearchCV(model_dispatcher.models[model],
+                       config.GRID_SEARCH_PARAMS,
+                       n_jobs=-1,
+                       scoring='f1'
+                       )
 
     clf.fit(x_train, y_train)
 
-    preds = clf.predict(x_valid)
+    preds = clf.best_estimator_.predict(x_valid)
 
     accuracy = metrics.f1_score(y_valid, preds)
+
     print(f"Fold={fold}, Accuracy={accuracy}")
+    print(f'Best Params: {clf.best_params_}')
+
     joblib.dump(clf,
                 os.path.join(config.MODEL_OUTPUT, f"dt_{model}_{fold}.bin")
                 )

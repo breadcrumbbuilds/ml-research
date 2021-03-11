@@ -6,14 +6,14 @@ import joblib
 import numpy as np
 import pandas as pd
 from sklearn import metrics
-from sklearn.model_selection import GridSearchCV
 
 import config
 import create_folds
-import model_dispatcher
+
+from dispatchers import model_dispatcher, grid_dispatcher
 
 # label may need to be a param
-def run(fold, model):
+def run(fold, model, grid):
     df = pd.read_csv(config.TRAINING_FILE)
 
     df_train = df[df.kfold != fold].reset_index(drop=True)
@@ -25,11 +25,10 @@ def run(fold, model):
     x_valid = df_valid.drop("target", axis=1).values
     y_valid = df_valid.target.values
 
-    clf = GridSearchCV(model_dispatcher.models[model],
-                       config.GRID_SEARCH_PARAMS,
-                       n_jobs=-1,
-                       scoring='f1'
-                       )
+    clf = grid_dispatcher[grid]
+    clf.estimator = model_dispatcher.models[model]
+
+    clf.scoring = 'f1'
 
     clf.fit(x_train, y_train)
 
@@ -55,7 +54,10 @@ if __name__ == "__main__":
         "--model",
         type=str
     )
-
+    parser.add_argument(
+        "--grid",
+        type=str
+    )
     args = parser.parse_args()
 
-    run(fold=args.fold, model=args.model)
+    run(fold=args.fold, model=args.model, grid=args.grid)

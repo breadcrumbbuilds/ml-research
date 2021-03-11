@@ -8,8 +8,7 @@ import pandas as pd
 from sklearn import metrics
 
 import config
-import create_folds
-import model_dispatcher
+from dispatchers import model_dispatcher
 
 # label may need to be a param
 def run(fold, model):

@@ -12,7 +12,7 @@ import config
 import create_folds
 import model_dispatcher
 
-# label may need to be a param
+
 def run(fold, model):
     df = pd.read_csv(config.TRAINING_FILE)
 
@@ -40,9 +40,15 @@ def run(fold, model):
     print(f"Fold={fold}, Accuracy={accuracy}")
     print(f'Best Params: {clf.best_params_}')
 
+
+    filename = f"dt_{config.TRAINING_FILE.replace('.csv', '').split('_')[2]}_{model}_{fold}.bin"
     joblib.dump(clf,
-                os.path.join(config.MODEL_OUTPUT, f"dt_{model}_{fold}.bin")
+                os.path.join(
+                    config.MODEL_OUTPUT,
+                    filename)
                 )
+    print(f"+w {filename}")
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -81,13 +81,12 @@ def bsq_to_scikit(ncol, nrow, nband, data):
     return img_np
 
 
-def retrieve_data(binary_path, force_rewrite=False):
+def retrieve_data(binary_path):
     csv_path = binary_path.replace('bin', 'csv')
-    write_to_disk = False
-    if not os.path.exists(csv_path) or force_rewrite:
-        write_to_disk = True
-        if not os.path.exists(binary_path):
-            raise Exception(f"{binary_path} doesn't exists")
+
+    if not os.path.exists(binary_path):
+        raise Exception(f"{binary_path} doesn't exists")
+    if not os.path.exists(csv_path):
         print("creating csv from binary file")
 
         data, dictionary = read_binary(binary_path)
@@ -96,10 +95,10 @@ def retrieve_data(binary_path, force_rewrite=False):
                     int(dictionary['bands']),
                     data)
         data = pd.DataFrame(data)
+        data.to_csv(csv_path)
     else:
         data = pd.read_csv(csv_path)
-
-    return data, write_to_disk
+    return data
 
 
 def convert_y_to_binary(target, y):
@@ -114,6 +113,8 @@ def convert_y_to_binary(target, y):
         print(vals, counts)
     else:
         y = np.logical_and(y, t).astype(int)
+        vals, counts = np.unique(y, return_counts=True)
+        print(vals, counts)
 
     return y
 
@@ -139,12 +140,12 @@ def retrieve_labels(path, label):
 def run(binary_filename, label, folds=5, force_rewrite=False):
     cwd = os.path.dirname(os.path.realpath(__file__))      #path to current file
     parent_dir = os.path.split(cwd)[0]
-    print(cwd)
+
     binary_path = os.path.join(parent_dir, binary_filename)
     labels_path = os.path.join(parent_dir, config.LABEL_DIR)
 
     print('retrieving data')
-    data, write_to_disk = retrieve_data(binary_path, force_rewrite=force_rewrite)
+    data = retrieve_data(binary_path)
 
     print('retrieving label')
     labels = retrieve_labels(labels_path, label)
@@ -159,16 +160,24 @@ def run(binary_filename, label, folds=5, force_rewrite=False):
     dataset = dataset.sample(frac=1).reset_index(drop=True)
 
     y = dataset.target.values
-    print(y)
     kf = model_selection.StratifiedKFold(n_splits=folds)
 
     for f, (t_, v_) in enumerate(kf.split(X=dataset, y=y)):
         dataset.loc[v_, 'kfold'] = f
 
 
-    if write_to_disk:
-        print('writing to disk')
-        csv_path = os.path.join(os.path.dirname(binary_path), f'input/train_folds_{label}.csv')
+    dirs = config.BINARY_FILE.replace('raw', 'processed').split('/')
+    new_parent_dir = parent_dir
+    for dir in dirs[:-1]:
+        new_parent_dir = os.path.join(new_parent_dir, dir)
+        if not os.path.exists(new_parent_dir):
+            print(f"+w {new_parent_dir}")
+            os.mkdir(new_parent_dir)
+
+    csv_path = os.path.join(new_parent_dir, f"train_folds_{label}.csv").replace('raw', 'processed')
+
+    if not os.path.exists(csv_path) or force_rewrite:
+        print(f"+w {csv_path}")
         dataset.to_csv(csv_path, index=False)
 
 

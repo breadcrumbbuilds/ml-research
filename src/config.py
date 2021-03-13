@@ -3,7 +3,7 @@
 BINARY_FILE = "input/raw/full/S2A.bin"
 LABEL_DIR = "input/raw/full/labels/"
 
-TRAINING_FILE = "input/processed/full/train_folds_conifer.csv"
+TRAINING_FILE = "input/processed/full/train_folds_water.csv"
 
 MODEL_OUTPUT = "models/"
 

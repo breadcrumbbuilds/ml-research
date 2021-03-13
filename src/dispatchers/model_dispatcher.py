@@ -9,7 +9,7 @@ models = {
       criterion="entropy",
 
 	),
-	"rf": ensemble.RandomForestClassifier(),
+	"rf": ensemble.RandomForestClassifier(n_jobs=-1),
 	"rf_after_grid": ensemble.RandomForestClassifier(
 		criterion='gini',
 		max_depth=9,

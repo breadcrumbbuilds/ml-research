@@ -13,7 +13,7 @@ import create_folds
 from dispatchers import model_dispatcher, grid_dispatcher
 
 # label may need to be a param
-def run(fold, model, grid):
+def run(fold, model, grid, normalize=False):
     df = pd.read_csv(config.TRAINING_FILE)
 
     df_train = df[df.kfold != fold].reset_index(drop=True)
@@ -24,6 +24,12 @@ def run(fold, model, grid):
 
     x_valid = df_valid.drop("target", axis=1).values
     y_valid = df_valid.target.values
+
+    if normalize:
+        scaler = normalize_dispatcher.normalize[normalize]
+        x_train = scaler.fit_transform(x_train)
+        x_valid = scaler.transform(x_valid)
+
 
     clf = grid_dispatcher.grids[grid]
     clf.estimator = model_dispatcher.models[model]
@@ -38,15 +44,8 @@ def run(fold, model, grid):
     print(f"Fold={fold}, Accuracy={accuracy}")
     print(f'Best Params: {clf.best_params_}')
 
-
-    filename = f"dt_{config.TRAINING_FILE.replace('.csv', '').split('_')[2]}_{model}_{fold}.bin"
-    joblib.dump(clf,
-                os.path.join(
-                    config.MODEL_OUTPUT,
-                    filename)
-                )
-    print(f"+w {filename}")
-
+    fn = f"{files.extract_class_from_filename(config.TRAINING_FILE)}_{grid}_{model}_{fold}.bin"
+    files.dump_model(clf.best_estimator_, fn)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -63,6 +62,13 @@ if __name__ == "__main__":
         "--grid",
         type=str
     )
+    parser.add_argument(
+        "--normalize",
+        type=str
+    )
     args = parser.parse_args()
 
-    run(fold=args.fold, model=args.model, grid=args.grid)
+    run(fold=args.fold,
+        model=args.model,
+        grid=args.grid,
+        normalize=args.normalize)

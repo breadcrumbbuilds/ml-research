@@ -5,6 +5,7 @@ import argparse
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import files
 import config
 from data import retrieve_data
 from dispatchers import normalize_dispatcher
@@ -23,7 +24,7 @@ def run(predict, normalize):
     if normalize:
         scaler = normalize_dispatcher.normalize[normalize]
         print(f'normalizing data using {scaler}')
-        x = scaler.fit_transform
+        x = scaler.fit_transform(x)
 
     clf = joblib.load(config.INFERENCE_MODEL)
 

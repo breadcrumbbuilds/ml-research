@@ -9,12 +9,14 @@ grids = {
 		None,
 		config.GRID_SEARCH_PARAMS,
 		n_jobs=-1,
-		verbose=100
+		verbose=100,
+		refit=True
 		),
     "grid": GridSearchCV(
 		None,
 		config.GRID_SEARCH_PARAMS,
-		n_jobs=-1
+		n_jobs=-1,
+  		refit=True
   		),
 }
 

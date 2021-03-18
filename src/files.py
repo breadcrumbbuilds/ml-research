@@ -1,12 +1,15 @@
 # src/files.py
 import os
+import json
+import time
+import time
 import joblib
 
 import config
 
 def dump_model(clf, filename):
     ''' standardize saving of model '''
-    path = os.path.join(config.MODEL_OUTPUT, filename)
+    path = os.path.join(get_run_logdir(config.MODEL_OUTPUT), filename)
 
     create_path(path)
 
@@ -43,3 +46,15 @@ def get_bin_path():
     binary_path = os.path.join(parent_dir, config.BINARY_FILE)
 
     return binary_path
+
+
+def get_run_logdir(root_logdir):
+    """ Create a unique directory for a specific run from system time """
+    run_id = time.strftime("run__%Y_%m")
+    return os.path.join(root_logdir, run_id)
+
+
+def create_results_file(path, information):
+    path = os.path.join(get_run_logdir(config.MODEL_OUTPUT), path)
+    with open(path, 'w') as fp:
+        fp.write(json.dumps(information, indent=4))

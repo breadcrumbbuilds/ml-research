@@ -5,11 +5,11 @@ import config
 
 
 normalize = {
-	"normalize_l1": Normalizer(norm="l1"),
-    "normalize_l2": Normalizer(norm="l2"),
-    "normalize_max":Normalizer(norm="max"),
-    "standardize_wo_std": StandardScaler(with_std=False),
-    "standardize_wo_mean": StandardScaler(with_mean=False),
+	"normalize-l1": Normalizer(norm="l1"),
+    "normalize-l2": Normalizer(norm="l2"),
+    "normalize-max":Normalizer(norm="max"),
+    "standardize-wo-std": StandardScaler(with_std=False),
+    "standardize-wo-mean": StandardScaler(with_mean=False),
     "standardize": StandardScaler()
 }
 

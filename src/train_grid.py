@@ -8,9 +8,9 @@ import pandas as pd
 from sklearn import metrics
 
 import config
-import create_folds
+import files
 
-from dispatchers import model_dispatcher, grid_dispatcher
+from dispatchers import model_dispatcher, grid_dispatcher, normalize_dispatcher
 
 # label may need to be a param
 def run(fold, model, grid, normalize=False):
@@ -18,6 +18,9 @@ def run(fold, model, grid, normalize=False):
 
     df_train = df[df.kfold != fold].reset_index(drop=True)
     df_valid = df[df.kfold == fold].reset_index(drop=True)
+
+    df_train = df_train.drop("kfold", axis=1)
+    df_valid = df_valid.drop("kfold", axis=1)
 
     x_train = df_train.drop("target", axis=1).values
     y_train = df_train.target.values

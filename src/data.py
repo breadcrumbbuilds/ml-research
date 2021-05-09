@@ -25,7 +25,7 @@ def read_header(binary_filename):
         for line in lines:
 
             line_split = line.split("=")
-            line_split = [l.strip() for l in line_split]
+            line_split = [l.strip().replace(',', '') for l in line_split]
 
             if len(line_split) < 2:
                 if not continue_reading:
@@ -44,12 +44,11 @@ def read_header(binary_filename):
                 if "{" in value:
                     continue_reading = True
                     result[key] = list()
-                    result[key].append(value.replace('{', ''))
+                    result[key].append(value.replace('{', '').replace(',','').replace('}', ''))
                     continue
 
 
                 result[key] = value
-
     return result
 
 
@@ -130,3 +129,16 @@ def retrieve_labels(path, label):
                     df = pd.DataFrame(data, columns=[target])
                     initialized = True
     return df
+
+def read_labels_from_file(path, label):
+    data, dictionary = read_binary(path)
+    data = bsq_to_scikit(int(dictionary['samples']),
+                int(dictionary['lines']),
+                int(dictionary['bands']),
+                data)
+    print(dictionary['band names'])
+    print(data.shape)
+    df = pd.DataFrame(data, columns=[x.replace(',','') for x in dictionary['band names']])
+
+    return df
+

@@ -8,30 +8,23 @@ import argparse
 import numpy as np
 import pandas as pd
 from sklearn import metrics
+from sklearn.model_selection import train_test_split
 
 import config
 import files
 from dispatchers import model_dispatcher, normalize_dispatcher, data_manip_dispatcher, grid_dispatcher
 
 # label may need to be a param
-def run(fold, model, normalize=False, data_manip=None, grid=None):
+def run(model, normalize=False, data_manip=None, grid=None):
+
+    file = config.DATA_FILE
+    df = pd.read_csv(config.DATA_FILE)
+    df.fillna(0, inplace=True)
     for file in config.TRAINING_FILES:
-        print(file)
-        df = pd.read_csv(file)
 
-        df_train = df[df.kfold != fold].reset_index(drop=True)
-        df_valid = df[df.kfold == fold].reset_index(drop=True)
+        target = pd.read_csv(file)
 
-        df_train = df_train.drop("kfold", axis=1)
-        df_valid = df_valid.drop("kfold", axis=1)
-
-
-        x_train = df_train.drop("target", axis=1).values
-        y_train = df_train.target.values
-
-        x_valid = df_valid.drop("target", axis=1).values
-        y_valid = df_valid.target.values
-
+        x_train, x_valid, y_train, y_valid = train_test_split(df.values, target.values, random_state=42)
 
         if normalize:
             scaler = normalize_dispatcher.normalize[normalize]
@@ -82,10 +75,10 @@ def run(fold, model, normalize=False, data_manip=None, grid=None):
 
         f1_score = metrics.f1_score(y_valid, preds)
 
-        print(f"Fold={fold}, F1Score={f1_score}")
+        print(f"F1Score={f1_score}")
 
 
-        model_fn = f"{files.extract_class_from_filename(file)}_{model}_{grid}_{data_manip}_{fold}.bin"
+        model_fn = f"{files.extract_class_from_filename(file)}_{model}_{grid}_{data_manip}.bin"
 
         if grid:
             files.dump_model(clf.best_estimator_, model_fn)
@@ -100,7 +93,6 @@ def run(fold, model, normalize=False, data_manip=None, grid=None):
                                         'grid-dispatch': grid,
                                         'time-to-fit (s)': fit_time,
                                         'time-to-predict (s)': pred_time,
-                                        'fold': fold,
                                         'f1': f1_score,
                                     })
         else:
@@ -116,7 +108,6 @@ def run(fold, model, normalize=False, data_manip=None, grid=None):
                                         'grid-dispatch': grid,
                                         'time-to-fit (s)': fit_time,
                                         'time-to-predict (s)': pred_time,
-                                        'fold': fold,
                                         'f1': f1_score,
                                     })
 
@@ -125,11 +116,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--fold",
-        type=int
+        "--model",
+        type=str
     )
     parser.add_argument(
-        "--model",
+        "--label",
         type=str
     )
     parser.add_argument(
@@ -147,7 +138,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    run(fold=args.fold,
+    run(
         model=args.model,
         normalize=args.normalize,
         data_manip=args.datamanip,

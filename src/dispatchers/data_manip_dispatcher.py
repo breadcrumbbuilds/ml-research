@@ -1,6 +1,7 @@
 from imblearn.under_sampling import RandomUnderSampler
 from imblearn.over_sampling import RandomOverSampler, SMOTE, SVMSMOTE, BorderlineSMOTE
 from imblearn.pipeline import Pipeline
+
 import config
 
 
@@ -23,8 +24,16 @@ data_manipulators = {
 
     "smote": SMOTE(),
 
+    "smote-.05": SMOTE(
+        sampling_strategy=0.05
+        ),
+
     "smote-.1": SMOTE(
         sampling_strategy=0.1
+        ),
+
+    "smote-.2": SMOTE(
+        sampling_strategy=0.2
         ),
 
     "svmsmote": SVMSMOTE(),
@@ -33,7 +42,7 @@ data_manipulators = {
 
     "smote-pipeline": Pipeline(
         steps=[
-            ('over', SMOTE(sampling_strategy=0.5)),
-             ('under', RandomUnderSampler(sampling_strategy=1))
+            ('over', SMOTE(sampling_strategy=0.00025)),
+             ('under', RandomUnderSampler(sampling_strategy=.25))
         ])
 }

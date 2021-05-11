@@ -1,6 +1,8 @@
 # config.py
 
 BINARY_FILE = "input/raw/20210420_data/mask.bin"
+BINARY_DATA_FILE = "input/raw/20210420_data/stack.bin"
+BINARY_MASK_FILE = "input/raw/20210420_data/mask.bin"
 LABEL_DIR = "input/raw/zoom/labels/"
 LABEL_FILE = "input/raw/20210420_data/mask.bin"
 TRAINING_FILES = [

@@ -10,18 +10,17 @@ import files
 
 
 
-def run(binary_filename, name, label, force_rewrite=False):
+def run(name, label, force_rewrite=False):
     cwd = os.path.dirname(os.path.realpath(__file__))      #path to current file
     parent_dir = os.path.split(cwd)[0]
-    binary_path = os.path.join(parent_dir, binary_filename)
+    binary_data_path = os.path.join(parent_dir, config.BINARY_DATA_FILE)
+    binary_label_path = os.path.join(parent_dir, config.BINARY_DATA_FILE)
 
     print('retrieving data')
+    data, dictionary = retrieve_data(binary_path)
 
-    if label:
-        data, dictionary = retrieve_data(binary_path)
-        idx = dictionary['band names'].index(label)
-        data = data[idx]
-        print(data.shape)
+    data = data[idx]
+    print(data.shape)
     else:
         data, dictionary = retrieve_data(binary_path)
 
@@ -66,8 +65,8 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    run(config.BINARY_FILE,
-        args.outputname,
+    run(
+        args.outputname
         args.target,
         force_rewrite=args.force
         )

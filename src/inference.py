@@ -3,20 +3,19 @@ import json
 import joblib
 import argparse
 import pandas as pd
-import matplotlib.pyplot as plt
-
+import pickle
 import files
 import config
 from data import retrieve_data
 from dispatchers import normalize_dispatcher
 
-def run(predict, normalize):
+def run(predict="", normalize="", outputfile=""):
     if not predict:
         predict = 'class'
     binary_path = files.get_bin_path()
 
     data, dictionary = retrieve_data(binary_path)
-
+    data = data.fillna(0)
     cols, rows, bands = int(dictionary['lines']), int(dictionary['samples']), int(dictionary['bands'])
 
     x = data.values.reshape((cols * rows, bands))
@@ -40,9 +39,11 @@ def run(predict, normalize):
 
 
     prediction = prediction.reshape((cols, rows))
+    filename = f'./output/{outputfile}.bin'
+    with open(filename, 'wb') as f:
+        pickle.dump(prediction, f)
+        print(f"+w {filename}")
 
-    plt.imshow(prediction, cmap='gray')
-    plt.show()
 
 
 
@@ -57,7 +58,12 @@ if __name__ == "__main__":
         "--normalize",
         type=str
     )
-
+    parser.add_argument(
+        "--outputfile",
+        type=str
+    )
 
     args = parser.parse_args()
-    run(predict=args.predict, normalize=args.normalize)
+    run(predict=args.predict,
+        normalize=args.normalize,
+        outputfile=args.outputfile)

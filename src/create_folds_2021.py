@@ -10,21 +10,44 @@ import files
 
 
 
-def run(name, label, force_rewrite=False):
+def run(folds, output_file_name, force_rewrite=False):
     cwd = os.path.dirname(os.path.realpath(__file__))      #path to current file
     parent_dir = os.path.split(cwd)[0]
     binary_data_path = os.path.join(parent_dir, config.BINARY_DATA_FILE)
-    binary_label_path = os.path.join(parent_dir, config.BINARY_DATA_FILE)
+    binary_label_path = os.path.join(parent_dir, config.BINARY_MASK_FILE)
+
+    print('retrieving labels')
+    label, l_dict = retrieve_data(binary_label_path)
 
     print('retrieving data')
-    data, dictionary = retrieve_data(binary_path)
-
-    data = data[idx]
-    print(data.shape)
-    else:
-        data, dictionary = retrieve_data(binary_path)
+    data, d_dict = retrieve_data(binary_data_path)
+    data["target"] = -1
 
 
+    result = None
+
+    print('gathering labelled examples')
+    for column in label.columns:
+        indices = label.index[label[column] == 1].tolist()
+
+        if result is None:
+            data.loc[indices, "target"] = column
+            result = data.loc[indices]
+        else:
+            data.loc[indices, "target"] = column
+            result = result.append(data.loc[indices])
+
+    result["kfold"] = -1
+
+    result = result.sample(frac=1).reset_index(drop=True)
+
+    print('splitting into folds')
+
+    y = result.target.values
+    kf = model_selection.StratifiedKFold(n_splits=folds)
+
+    for f, (t_, v_) in enumerate(kf.split(X=result, y=y)):
+        result.loc[v_, 'kfold'] = f
 
     dirs = config.BINARY_FILE.replace('raw', 'processed').split('/')
     new_parent_dir = parent_dir
@@ -34,21 +57,12 @@ def run(name, label, force_rewrite=False):
             print(f"+w {new_parent_dir}")
             os.mkdir(new_parent_dir)
 
-    if label:
-        csv_path = os.path.join(new_parent_dir, f"{label}.csv")
-    else:
-        csv_path = os.path.join(new_parent_dir, f"{name}.csv")
 
-    if not label:
-
-        json_path = csv_path.replace('csv', 'json')
-        with open(json_path, 'w') as fp:
-            print(f"+w {json_path}")
-            json.dump(dictionary, fp, indent=4)
+    csv_path = os.path.join(new_parent_dir, f"{output_file_name}.csv")
 
     if not os.path.exists(csv_path) or force_rewrite:
         print(f"+w {csv_path}")
-        data.to_csv(csv_path, index=False)
+        result.to_csv(csv_path, index=False)
     else:
         print(f"{csv_path} exists, no write")
 
@@ -58,15 +72,15 @@ def run(name, label, force_rewrite=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
+    parser.add_argument("--folds", type=int)
     parser.add_argument("--outputname", type=str)
-    parser.add_argument("--target", type=str)
     parser.add_argument("--force", type=bool)
 
 
     args = parser.parse_args()
 
     run(
-        args.outputname
-        args.target,
+        args.folds,
+        args.outputname,
         force_rewrite=args.force
         )
